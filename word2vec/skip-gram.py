@@ -40,6 +40,8 @@ class SkipGram(nn.model):
         super(SkipGram,self).__init__()
         # embedding 允许稀疏表示，意味着里边有很多的0，使用了indices、value的表示方法
         self.u_embeddings = nn.Embedding(vocab_size,embedding_dim,sparse=True)
+        # 这里也可以用linear层，其实是等价的，但是为了后边方便计算负采样，所以用embedding，然后再使用了多个sigmoid代替整体的softmax计算，减小计算量
+        # 如果这里用linear层，则后边使用负采样的时候，需要去除linear层中的weight参数，没有直接使用embedding方便
         self.v_embeddings = nn.Embedding(vocab_size,embedding_dim,sparse=True)
         self.embedding_dim = embedding_dim
         self.init_emb()
@@ -54,7 +56,6 @@ class SkipGram(nn.model):
 
     def forward(self,u_pos,v_pos,v_neg,batch_size):
         """
-        其实u和v都可以看做词向量的集合，这里就不用纠结什么神经网络结构了，就简单的看成两个词向量集合互相的关系，最终训练的是这两个词向量
         :param u_pos:中心词的索引
         :param v_pos: 上下文词的索引
         :param v_neg: 非上下文词的索引
